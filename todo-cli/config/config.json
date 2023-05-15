@@ -1,0 +1,24 @@
+{
+  "development": {
+    "username": "postgres",
+    "password": "deepak123",
+    "database": "todo_db_development",
+    "host": "127.0.0.1",
+    "dialect": "postgres"
+  },
+  "test": {
+    
+    "username": "postgres",
+    "password":  "deepak123",
+    "database": "todo_db_test",
+    "host": "127.0.0.1",
+    "dialect": "postgres"
+  },
+  "production": {
+    "username": "postgres",
+    "password":  "deepak123",
+    "database": "todo_db_production",
+    "host": "127.0.0.1",
+    "dialect": "postgres"
+  }
+}
