@@ -7,12 +7,14 @@ const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 const path = require(`path`);
 
+
 const passport = require('passport');
 const connectEnsureLogin = require('connect-ensure-login');
 const session = require('express-session');
 const LocalStrategy = require('passport-local');
 const bcrypt = require('bcrypt');
 const { error } = require("console");
+//const { next } = require("cheerio/lib/api/traversing");
 const saltRounds = 10 ;
 
 app.use(bodyParser.json());
@@ -79,12 +81,13 @@ app.get("/", async (request, response) => {
 });
 
 app.get("/todos", connectEnsureLogin.ensureLoggedIn(), async (request,response) => {
-  const todayTask = await Todos.todayTask();
-  const Overduetask = await Todos.Overduetask();
-  const Latertask = await Todos.Latertask();
-  const CompletionStatus = await Todos.completed();
+  const loggedInUser = request.user.id
+  const todayTask = await Todos.todayTask(loggedInUser);
+  const Overduetask = await Todos.Overduetask(loggedInUser);
+  const Latertask = await Todos.Latertask(loggedInUser);
+  const CompletionStatus = await Todos.completed(loggedInUser);
   if (request.accepts("html")) {
-    response.render("todos", { 
+    response.render("todo", { 
       todayTask, 
       Overduetask, 
       Latertask , 
@@ -138,6 +141,13 @@ app.post("/session", passport.authenticate("local",{ failureRedirect: "/login"})
 
 })
 
+app.get("/signout", (request, response , next)=> {
+  request.logout((err)  => {
+    if (err) { return next(err); }
+    response.redirect("/")
+  })
+})
+
 app.get("/todos", async (request, response) => {
   console.log("Todo list");
   try {
@@ -150,8 +160,9 @@ app.get("/todos", async (request, response) => {
 });
 
 
-app.post("/todos", async (request, response) => {
+app.post("/todos", connectEnsureLogin.ensureLoggedIn(), async (request, response) => {
     console.log("creating a todo", request.body);
+    console.log(request.user)
     if (!request.body.dueDate) {
       return response.status(400).json({ error: "Due date is required" });
     }
@@ -161,18 +172,20 @@ app.post("/todos", async (request, response) => {
     }
     try{
       await Todos.addTodos({ 
-        title,
-        dueDate,
-        completed: false 
+        title: request.body.title,
+        dueDate: request.body.dueDate,
+        userId: request.user.id
+        //completed: false 
       });
-      return response.redirect("/");
+      return response.redirect("/todos");
     } catch (error) {
       console.log(error);
       return response.status(500).json(error);
     }
   });
 
-app.get("/todos/:id", async (request, response) => {
+app.get("/todos/:id", connectEnsureLogin.ensureLoggedIn(), async (request, response) => {
+  ////////////////////////////////////////
   console.log("We have to update a todo with ID:", request.params.id);
   const todo = await Todos.findByPk(request.params.id);
   try {
@@ -183,7 +196,7 @@ app.get("/todos/:id", async (request, response) => {
     return response.status(500).json(error);
   }
 });
-app.put("/todos/:id", async (request, response) => {
+app.put("/todos/:id",connectEnsureLogin.ensureLoggedIn(),  async (request, response) => {
     console.log("We have to update a todo with ID:", request.params.id);
     const todo = await Todos.findByPk(request.params.id);
     const { completed } = request.body;
@@ -196,7 +209,7 @@ app.put("/todos/:id", async (request, response) => {
     }
   });
 
-app.delete("/todos/:id", async (request, response) => {
+app.delete("/todos/:id",connectEnsureLogin.ensureLoggedIn(), async (request, response) => {
   console.log("We have to delete a Todo with ID: ", request.params.id);
   try {
     await Todos.remove(request.params.id);

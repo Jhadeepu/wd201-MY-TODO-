@@ -1,4 +1,5 @@
 'use strict';
+//const { use } = require("passport");
 const {
   Model
 } = require("sequelize");
@@ -21,67 +22,73 @@ module.exports = (sequelize, DataTypes) => {
     //   })
       // define association here
     // }
-    static async Overduetask()
+    static async Overduetask(userId)
   {
     return await Todos.findAll({
       where: {
         dueDate: {
           [Op.lt]: new Date(),
         },
+        userId,
         completed: false,
       }, order: [["id", "ASC"]],
     });
   }
-  static async todayTask()
+  static async todayTask(userId)
   {
     return await Todos.findAll({
       where: {
         dueDate: {
           [Op.eq]: new Date(),
         },
+        userId,
         completed: false,
       }, order: [["id", "ASC"]],
     });
   }
-  static async Latertask(){
+  static async Latertask(userId){
     return await Todos.findAll({
       where: { 
         dueDate: {
         [Op.gt]: new Date() 
       },
+      userId,
       completed: false,
     }, order: [["id", "ASC"]]
     })
   }
-    static async completed(){
+    static async completed(userId){
     return await Todos.findAll({
       where: {
         completed: true
       },
+      userId,
       order: [['id', 'ASC']],
     });
   }
 
-  static async incomplete() {
+  static async incomplete(userId) {
     return await Todos.findAll({
       where: {
         completed: false
       },
+      userId,
       order: [['id', 'ASC']]
     });
   }
-    static addTodos({ title, dueDate }) {
+    static addTodos({ title, dueDate , userId }) {
     return this.create({
       title: title,
       dueDate: dueDate,
-      completed: false
+      completed: false, userId
     });
   }
 
-    static async remove(id) {
+    static async remove(id, userId) {
     return await this.destroy({
       where: {
         id: id,
+        userId
       },
     });
   }
