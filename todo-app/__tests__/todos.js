@@ -20,7 +20,7 @@ const login = async (agent, username, password) => {
 describe("Todo Application", function () {
   beforeAll(async () => {
     await db.sequelize.sync({ force: true });
-    server = app.listen(6000, () => {});
+    server = app.listen(6000, () => { });
     agent = request.agent(server);
   });
 
@@ -71,7 +71,7 @@ describe("Todo Application", function () {
 
   test("Marks a todo item as complete", async () => {
     const agent = request.agent(server)
-     await login(agent, "test@gmail.com", "12345678")
+    await login(agent, "test@gmail.com", "12345678")
     let res = await agent.get("/todos");
     let csrfToken = extractCsrfToken(res);
     await agent.post("/todos").send({
@@ -94,10 +94,10 @@ describe("Todo Application", function () {
     const parsedCompleteResponse = JSON.parse(markCompleteResponse.text);
     expect(parsedCompleteResponse.completed).toBe(true);
   });
- 
+
   test("Marks a todo item as incomplete", async () => {
     const agent = request.agent(server)
-     await login(agent, "test@gmail.com", "12345678")
+    await login(agent, "test@gmail.com", "12345678")
     let res = await agent.get("/todos");
     let csrfToken = extractCsrfToken(res);
     await agent.post("/todos").send({
@@ -120,11 +120,11 @@ describe("Todo Application", function () {
     const parsedIncompleteResponse = JSON.parse(markIncompleteResponse.text);
     expect(parsedIncompleteResponse.completed).toBe(false);
   });
-  
-  
+
+
   test("Deletes a todo using /todos/:id endpoint", async () => {
     const agent = request.agent(server)
-     await login(agent, "test@gmail.com", "12345678")
+    await login(agent, "test@gmail.com", "12345678")
     let res = await agent.get("/todos");
     let csrfToken = extractCsrfToken(res);
     await agent.post("/todos").send({
