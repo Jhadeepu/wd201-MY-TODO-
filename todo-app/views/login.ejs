@@ -18,9 +18,6 @@
             <div class="col-start-3 col-span-2">
                 <%- include('header.ejs') %>
                 <h6 class="py-4">Login to your account</h6>
-                <% if (message.error) { %>
-                    <p class="text-red-500"><%= message.error %></p>
-                <% } %>
                 <form action="/session" method="post">
                     <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                     
@@ -36,6 +33,7 @@
                         <button type="submit" class="text-white bg-green-600 hover:bg-green-800 font-medium rounded px-5 py-2">Sign in</button> 
                     </div>
                 </form>
+                <%- include("notifications.ejs") %>
             </div>
         </div>
     </body>

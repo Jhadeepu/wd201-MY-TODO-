@@ -13,6 +13,7 @@ const connectEnsureLogin = require('connect-ensure-login');
 const session = require('express-session');
 const LocalStrategy = require('passport-local');
 const bcrypt = require('bcrypt');
+const flash = require("connect-flash");
 const { error } = require("console");
 //const { next } = require("cheerio/lib/api/traversing");
 const saltRounds = 10 ;
@@ -21,18 +22,26 @@ app.use(bodyParser.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser("shh! some secret string"));
 app.use(csrf("this_should_be_32_character_long",["POST", "PUT", "DELETE"]));
-
+app.use(flash());
 app.set("view engine", "ejs");
 app.use(express.static(path.join(__dirname, 'public')));
+app.set("views", path.join(__dirname, "views"));
 
 app.use(session({
   secret: "secret-key-23456897686543",
   cookie: {
     maxAge: 1000 * 60 * 60 * 24 * 14// a week
-  }
+  },
+  // resave: false,
+    // saveUninitialized: true,
 }))
 app.use(passport.initialize())
 app.use(passport.session())
+
+app.use(function(request, response, next) {
+  response.locals.messages = request.flash();
+  next();
+});
 
 passport.use(new LocalStrategy ({
   usernameField: "email",
@@ -109,6 +118,22 @@ app.get("/signup" , (request,response) => {
 })
 
 app.post("/users" , async (request, response) => {
+  if (request.body.firstName.length == 0) {
+    request.flash("error","FirstName can not be empty!")
+    return response.redirect("/signup");
+  }
+  if (request.body.lastName.length == 0) {
+    request.flash("error","lastName can not be empty!")
+    return response.redirect("/signup");
+  }
+  if (request.body.email.length == 0) {
+    request.flash("error","Email can not be empty!")
+    return response.redirect("/signup");
+  }
+  if (request.body.password.length < 6) {
+    request.flash("error","password can not be empty!")
+    return response.redirect("/signup");
+  }
   const hashedPwd = await bcrypt.hash(request.body.password, saltRounds)
   console.log(hashedPwd)
   console.log("Firstname", request.body.firstName)
@@ -126,19 +151,22 @@ app.post("/users" , async (request, response) => {
       response.redirect("/todos")
     })
   } catch (error) {
-    console.log(error);
+    request.flash("error", "Email already in use , try to sign up with different email");
+    return response.redirect("/signup")
   }
-
 })
 
 app.get("/login", (request, response) => {
   response.render("login", { title: "Login", csrfToken: request.csrfToken()})
 })
 
-app.post("/session", passport.authenticate("local",{ failureRedirect: "/login"}) , (request,response) => {
+app.post("/session", 
+passport.authenticate("local",{
+   failureRedirect: "/login"
+  }), 
+(request,response) => {
   console.log(request.user),
   response.redirect("/todos")
-
 })
 
 app.get("/signout", (request, response , next)=> {
@@ -185,7 +213,6 @@ app.post("/todos", connectEnsureLogin.ensureLoggedIn(), async (request, response
   });
 
 app.get("/todos/:id", connectEnsureLogin.ensureLoggedIn(), async (request, response) => {
-  ////////////////////////////////////////
   console.log("We have to update a todo with ID:", request.params.id);
   const todo = await Todos.findByPk(request.params.id);
   try {
