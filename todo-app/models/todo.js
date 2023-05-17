@@ -88,7 +88,7 @@ module.exports = (sequelize, DataTypes) => {
     return await this.destroy({
       where: {
         id: id,
-        userId
+        userId: userId
       },
     });
   }

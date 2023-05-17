@@ -237,7 +237,7 @@ app.put("/todos/:id",connectEnsureLogin.ensureLoggedIn(),  async (request, respo
   });
 
 app.delete("/todos/:id",connectEnsureLogin.ensureLoggedIn(), async (request, response) => {
-  console.log("We have to delete a Todo with ID: ", request.params.id);
+  console.log("We have to delete a Todo with ID: ", request.params.id, request.user.id);
   try {
     await Todos.remove(request.params.id);
     return response.json({ success: true });
