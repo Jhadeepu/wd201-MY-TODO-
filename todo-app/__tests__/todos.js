@@ -122,52 +122,51 @@ describe("Todo Application", function () {
   });
 <<<<<<< HEAD
   
-  test("Auser cannot edit or modify and delete Btest todo", async () => {
+test("Auser cannot edit or modify and delete Btest todo", async () => {
     var agent = request.agent(server);
     await login(agent, "test@gmail.com", "12345678");
     var res = await agent.get("/todos");
     var csrfToken = extractCsrfToken(res);
-=======
-
-
-  test("Deletes a todo using /todos/:id endpoint", async () => {
-    const agent = request.agent(server)
-    await login(agent, "test@gmail.com", "12345678")
-    let res = await agent.get("/todos");
-    let csrfToken = extractCsrfToken(res);
->>>>>>> 032570eff2d61695dd3991ff8b51343309995ba9
     await agent.post("/todos").send({
-      title: "Buy ice cream",
+      title: "Buy ICE CREAM",
       dueDate: new Date().toISOString(),
       completed: false,
       _csrf: csrfToken,
     });
+  
     const Todos = await agent.get("/todos").set("Accept", "application/json");
     const parseTodos = JSON.parse(Todos.text);
     const dueToday = parseTodos.dueToday || [];
     const countTodaysTodos = dueToday.length;
     const Todo = dueToday[countTodaysTodos - 1];
+  
     if (Todo) {
       const todoID = Todo.id;
       const status = Todo.completed ? false : true;
+  
       res = await agent.get("/signout");
       expect(res.statusCode).toBe(302);
+  
       res = await agent.get("/signup");
       csrfToken = extractCsrfToken(res);
       const response = await agent.post("/users").send({
         firstName: "user",
         lastName: "test",
-        email: "Btest@gmail.com",
+        email: "Buser@gmail.com",
         password: "12345678",
         _csrf: csrfToken,
       });
       expect(response.statusCode).toBe(302);
-      await login(agent, "Btest@gmail.com", "12345678");
+  
+      await login(agent, "Buser@gmail.com", "12345678");
+  
       res = await agent.get("/todos");
       csrfToken = extractCsrfToken(res);
+  
       const changeTodo = await agent
         .put(`/todos/${todoID}`)
         .send({ _csrf: csrfToken, completed: status });
+  
       const parseUpdateTodo = JSON.parse(changeTodo.text);
       console.log("Complete: " + parseUpdateTodo.completed);
       console.log("Status: " + status);
@@ -176,7 +175,6 @@ describe("Todo Application", function () {
       expect(true).toBe(true);
     }
   });
-
   test("Delete a todo", async () => {
     const agent = request.agent(server);
     await login(agent, "test@gmail.com", "12345678");
