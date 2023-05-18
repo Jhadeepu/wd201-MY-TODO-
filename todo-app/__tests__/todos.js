@@ -120,12 +120,22 @@ describe("Todo Application", function () {
     const parsedIncompleteResponse = JSON.parse(markIncompleteResponse.text);
     expect(parsedIncompleteResponse.completed).toBe(false);
   });
+<<<<<<< HEAD
   
   test("Auser cannot edit or modify and delete Btest todo", async () => {
     var agent = request.agent(server);
     await login(agent, "test@gmail.com", "12345678");
     var res = await agent.get("/todos");
     var csrfToken = extractCsrfToken(res);
+=======
+
+
+  test("Deletes a todo using /todos/:id endpoint", async () => {
+    const agent = request.agent(server)
+    await login(agent, "test@gmail.com", "12345678")
+    let res = await agent.get("/todos");
+    let csrfToken = extractCsrfToken(res);
+>>>>>>> 032570eff2d61695dd3991ff8b51343309995ba9
     await agent.post("/todos").send({
       title: "Buy ice cream",
       dueDate: new Date().toISOString(),
