@@ -53,10 +53,10 @@ passport.use(new LocalStrategy ({
       if (result) {
         return done(null, user)
       } else {
-        return done("Invalid Password")
+        return done(null , false , {message:"Invalid Password"})
       }
-    }).catch((error) => {
-      return done(error)
+    }).catch(() => {
+      return done(null , false , {message:"user not exist"})
     })
 }))
 
@@ -162,7 +162,8 @@ app.get("/login", (request, response) => {
 
 app.post("/session", 
 passport.authenticate("local",{
-   failureRedirect: "/login"
+   failureRedirect: "/login",
+   failureFlash: true,
   }), 
 (request,response) => {
   console.log(request.user),
@@ -237,12 +238,16 @@ app.put("/todos/:id",connectEnsureLogin.ensureLoggedIn(),  async (request, respo
   });
 
 app.delete("/todos/:id",connectEnsureLogin.ensureLoggedIn(), async (request, response) => {
-  console.log("We have to delete a Todo with ID: ", request.params.id, request.user.id);
+  console.log("We have to delete a Todo with ID: ", request.params.id);
   try {
-    await Todos.remove(request.params.id);
+    await Todos.remove(request.params.id, request.user.id);
+    const deleted = await Todos.findByPk(request.params.id);
+    if(deleted) {
+      return response.json({ success: false})
+    }else{
     return response.json({ success: true });
-  } catch (error) {
-    console.log(error);
+  }} catch (error) {
+    console.log();
     return response.status(500).json(error);
   }
 });
