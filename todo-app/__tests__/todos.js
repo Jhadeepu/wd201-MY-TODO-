@@ -176,7 +176,7 @@ describe("Todo Application", function () {
     }
   });
 
-  test("Delete a todo", async () => {
+  test("We can check for Deleting a todo", async () => {
     const agent = request.agent(server);
     await login(agent, "test@gmail.com", "12345678");
     let resp = await agent.get("/todos");
