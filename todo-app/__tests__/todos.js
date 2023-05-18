@@ -120,9 +120,8 @@ describe("Todo Application", function () {
     const parsedIncompleteResponse = JSON.parse(markIncompleteResponse.text);
     expect(parsedIncompleteResponse.completed).toBe(false);
   });
-<<<<<<< HEAD
   
-test("Auser cannot edit or modify and delete Btest todo", async () => {
+  test("Auser cannot edit or modify and delete Btest todo", async () => {
     var agent = request.agent(server);
     await login(agent, "test@gmail.com", "12345678");
     var res = await agent.get("/todos");
@@ -172,9 +171,11 @@ test("Auser cannot edit or modify and delete Btest todo", async () => {
       console.log("Status: " + status);
       expect(parseUpdateTodo.completed).toBe(!status);
     } else {
+      // No todo found, consider the test passed
       expect(true).toBe(true);
     }
   });
+
   test("Delete a todo", async () => {
     const agent = request.agent(server);
     await login(agent, "test@gmail.com", "12345678");
@@ -190,13 +191,16 @@ test("Auser cannot edit or modify and delete Btest todo", async () => {
       .get("/todos")
       .set("Accept", "application/json");
     const parsedGroupedResponse = JSON.parse(groupedTodoResponse.text);
-    const dueTodayCount = parsedGroupedResponse.dueToday.length;
-    const latestTodo = parsedGroupedResponse.dueToday[dueTodayCount - 1];
-
+    const todayTaskCount = parsedGroupedResponse.todayTask.length;
+    const latestTodo = parsedGroupedResponse.todayTask[todayTaskCount - 1];
+  
     resp = await agent.get("/todos");
     csrfToken = extractCsrfToken(resp);
-
-    const deleteResponse = await agent.delete(`/todos/${latestTodo.id}`).send();
+  
+    const deleteResponse = await agent
+      .delete(`/todos/${latestTodo.id}`)
+      .send({ _csrf: csrfToken });
+  
     const parsedDeletedResponse = JSON.parse(deleteResponse.text);
     console.log(parsedDeletedResponse.success);
     expect(parsedDeletedResponse.success).toBe(true);
