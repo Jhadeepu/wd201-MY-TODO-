@@ -61,7 +61,7 @@
             <%- include('header.ejs') %>
             <form action="/todos" method="post">
                 <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
-                <% if (user) { %>
+                 <% if (user && user.firstName && user.lastName) { %>
                     <p class="py-2 text-sm font-semibold">Welcome, <%= user.firstName %> <%= user.lastName %></p>
                 <% } %>
                 <div class="flex gap-2 py-4">
@@ -69,7 +69,7 @@
                         <input type="text" name="title" placeholder="What's next?" class="border border-grey-300 rounded text-grey-900 w-full p-2 text-sm" />
                     </div>
                     <div class="flex-auto">
-                        <input type="date" name="dueDate" class="border border-gray-300 rounded-lg text-gray-500 w-full p-2 text-sm leading-4"/>
+                        <input type="date" name="dueDate" class="border border-gray-300 rounded-lg text-gray-500 w-full p-2 text-sm leading-4" />
                     </div>
                     <div class="flex-none">
                         <button type="submit" class="bg-red-300 rounded text-white px-5 py-2 w-full p-2 text-sm font-medium mr-2 ">Add</button>
