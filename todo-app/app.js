@@ -34,10 +34,10 @@ app.set("views", path.join(__dirname, "views"));
 app.use(session({
   secret: "secret-key-23456897686543",
   cookie: {
-    maxAge: 1000 * 60 * 60 * 24 * 14// a week
+    maxAge: 1000 * 60 * 60 * 24
   },
-  // resave: false,
-    // saveUninitialized: true,
+   resave: false,
+   saveUninitialized: true,
 }))
 app.use(passport.initialize())
 app.use(passport.session())
@@ -78,25 +78,30 @@ passport.deserializeUser((id, done) => {
     done(error, null)
   })
 })
+app.get("/", (request, response, next) => {
+  if (request.isAuthenticated()) {
+    return response.redirect("/todos");
+  }
 
-app.get("/", ensureLoggedOut(), (req, res) => {
-  res.render("index", {
+  response.render("index", { 
     title: "Todo application",
-    csrfToken: req.csrfToken() 
+    csrfToken: request.csrfToken() 
   });
 });
 
-app.get("/", (request, response) => {
-  if (request.user) {
+app.get("/login", (request, response, next) => {
+  if (request.isAuthenticated()) {
     return response.redirect("/todos");
   }
-    response.render("index", { 
-    title: "Todo application",
-      csrfToken: request.csrfToken() 
-    });
+
+  response.render("login", { 
+    title: "Login", 
+    csrfToken: request.csrfToken()
+  });
 });
 
 app.get("/todos", connectEnsureLogin.ensureLoggedIn(), async (request, response) => {
+  try{
   const loggedInUser = request.user.id;
   const todayTask = await Todos.todayTask(loggedInUser);
   const Overduetask = await Todos.Overduetask(loggedInUser);
@@ -117,8 +122,11 @@ app.get("/todos", connectEnsureLogin.ensureLoggedIn(), async (request, response)
       todayTask,
       Overduetask,
       Latertask,
-      CompletionStatus
+      CompletionStatus,
     });
+  }} catch (error) {
+    console.log(error);
+    return response.status(500).json({ error: "Unable to retrieve todos" });
   }
 });
 
@@ -187,17 +195,21 @@ app.get("/signout", (request, response , next)=> {
     response.redirect("/")
   })
 })
+  app.get("/todos", connectEnsureLogin.ensureLoggedIn(), async (request, response) => {
+    console.log("Todo list");
+    try {
+      const loggedInUser = request.user.id;
+      const completedTodos = await Todos.findAll({ where: { userId: loggedInUser, completed: true } });
 
-app.get("/todos", async (request, response) => {
-  console.log("Todo list");
-  try {
-    const todos = await Todos.findAll();
-    return response.json(todos);
-  } catch (error) {
-    console.log(error);
-    return response.status(500).json({ error: "Unable to retrieve todos" });
-  }
-});
+      //const todos = await Todos.findAll({ where: { userId: loggedInUser } });
+      return response.json(Todos);
+    } catch (error) {
+      console.log(error);
+      return response.status(500).json({ error: "Unable to retrieve todos" });
+    }
+  });
+  
+
 app.post("/todos",connectEnsureLogin.ensureLoggedIn(),async function (request, response) {
     if (request.body.title.length == 0) {
       request.flash("error", "Title shouldn't be empty!");
@@ -224,6 +236,9 @@ app.post("/todos",connectEnsureLogin.ensureLoggedIn(),async function (request, r
       return response.status(422).json(error);
     }
   });
+
+  
+
 
 app.put("/todos/:id",connectEnsureLogin.ensureLoggedIn(),  async (request, response) => {
     console.log("We have to update a todo with ID:", request.params.id);
