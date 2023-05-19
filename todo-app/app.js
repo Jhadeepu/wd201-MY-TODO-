@@ -6,7 +6,10 @@ const { Todos, User } = require("./models");
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 const path = require(`path`);
-
+//
+const { ensureLoggedIn, ensureLoggedOut } = require("connect-ensure-login");
+const Sequelize = require("sequelize");
+//
 
 const passport = require('passport');
 const connectEnsureLogin = require('connect-ensure-login');
@@ -63,12 +66,6 @@ passport.use(new LocalStrategy ({
 passport.serializeUser((user, done) => {
   console.log("serializing user in session", user.id)
   done(null, user.id)
-  // .then(user => {
-  //   done(null, user)
-  // })
-  // .catch(error => {
-  //   done(error, null)
-  // })
 })
 
 passport.deserializeUser((id, done) => {
@@ -81,36 +78,74 @@ passport.deserializeUser((id, done) => {
   })
 })
 
+app.get("/", ensureLoggedOut(), (req, res) => {
+  res.render("index", {
+    title: "Todo application",
+    csrfToken: req.csrfToken() 
+  });
+});
 
-app.get("/", async (request, response) => {
+app.get("/", (request, response) => {
+  if (request.user) {
+    return response.redirect("/todos");
+  }
     response.render("index", { 
     title: "Todo application",
       csrfToken: request.csrfToken() 
     });
 });
 
-app.get("/todos", connectEnsureLogin.ensureLoggedIn(), async (request,response) => {
-  const loggedInUser = request.user.id
+// app.get("/todos", connectEnsureLogin.ensureLoggedIn(), async (request,response) => {
+//   const loggedInUser = request.user.id
+//   const userName = request.user.firstName + " " + request.user.lastName;
+//   const todayTask = await Todos.todayTask(loggedInUser);
+//   const Overduetask = await Todos.Overduetask(loggedInUser);
+//   const Latertask = await Todos.Latertask(loggedInUser);
+//   const CompletionStatus = await Todos.completed(loggedInUser);
+//   if (request.accepts("html")) {
+//     response.render("todo", {
+//       userName, 
+//       todayTask, 
+//       Overduetask, 
+//       Latertask , 
+//       CompletionStatus,
+//       csrfToken: request.csrfToken() 
+//     });
+//   } else {
+//     response.json({ 
+//       userName,
+//       todayTask,
+//        Overduetask,
+//         Latertask,
+//          CompletionStatus });
+//   }
+// })
+app.get("/todos", connectEnsureLogin.ensureLoggedIn(), async (request, response) => {
+  const loggedInUser = request.user.id;
   const todayTask = await Todos.todayTask(loggedInUser);
   const Overduetask = await Todos.Overduetask(loggedInUser);
   const Latertask = await Todos.Latertask(loggedInUser);
   const CompletionStatus = await Todos.completed(loggedInUser);
+
   if (request.accepts("html")) {
-    response.render("todo", { 
-      todayTask, 
-      Overduetask, 
-      Latertask , 
+    response.render("todo", {
+      todayTask,
+      Overduetask,
+      Latertask,
       CompletionStatus,
-      csrfToken: request.csrfToken() 
+      csrfToken: request.csrfToken(),
+      user: request.user
     });
   } else {
-    response.json({ 
+    response.json({
       todayTask,
-       Overduetask,
-        Latertask,
-         CompletionStatus });
+      Overduetask,
+      Latertask,
+      CompletionStatus
+    });
   }
-})
+});
+
 
 app.get("/signup" , (request,response) => {
   response.render("signup", { title: "Signup", csrfToken: request.csrfToken() });
@@ -188,30 +223,42 @@ app.get("/todos", async (request, response) => {
   }
 });
 
-
 app.post("/todos", connectEnsureLogin.ensureLoggedIn(), async (request, response) => {
-    console.log("creating a todo", request.body);
-    console.log(request.user)
-    if (!request.body.dueDate) {
-      return response.status(400).json({ error: "Due date is required" });
-    }
-    const { title, dueDate } = request.body;
-    if (!title || !dueDate) {
-      return response.status(400).json({ error: "Title and Due date are required" });
-    }
-    try{
-      await Todos.addTodos({ 
-        title: request.body.title,
-        dueDate: request.body.dueDate,
-        userId: request.user.id
-        //completed: false 
-      });
-      return response.redirect("/todos");
-    } catch (error) {
+  console.log("creating a todo", request.body);
+  console.log(request.user);
+
+  if (!request.body.dueDate) {
+    return response.status(400).json({ error: "Due date is required" });
+  }
+
+  const { title, dueDate } = request.body;
+  if (!title || !dueDate) {
+    return response.status(400).json({ error: "Title and Due date are required" });
+  }
+
+  try {
+    await Todos.addTodos({
+      title: request.body.title,
+      dueDate: request.body.dueDate,
+      userId: request.user.id,
+      completed: false,
+    });
+    //return response.status(200).json({ success: true, message: "Todo created successfully", Todos });
+  } catch (error) {
+    if (error instanceof Sequelize.ValidationError) {
+      // Handle validation errors
+      const errors = error.errors.map((err) => ({
+        field: err.path,
+        message: err.message,
+      }));
+      return response.status(400).json({ success: false, message: "Validation error", errors });
+    } else {
+      // Handle other errors
       console.log(error);
-      return response.status(500).json(error);
+      return response.status(500).json({ success: false, message: "Internal server error" });
     }
-  });
+  }
+});
 
 app.get("/todos/:id", connectEnsureLogin.ensureLoggedIn(), async (request, response) => {
   console.log("We have to update a todo with ID:", request.params.id);
