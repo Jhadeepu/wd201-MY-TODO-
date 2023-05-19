@@ -95,31 +95,6 @@ app.get("/", (request, response) => {
     });
 });
 
-// app.get("/todos", connectEnsureLogin.ensureLoggedIn(), async (request,response) => {
-//   const loggedInUser = request.user.id
-//   const userName = request.user.firstName + " " + request.user.lastName;
-//   const todayTask = await Todos.todayTask(loggedInUser);
-//   const Overduetask = await Todos.Overduetask(loggedInUser);
-//   const Latertask = await Todos.Latertask(loggedInUser);
-//   const CompletionStatus = await Todos.completed(loggedInUser);
-//   if (request.accepts("html")) {
-//     response.render("todo", {
-//       userName, 
-//       todayTask, 
-//       Overduetask, 
-//       Latertask , 
-//       CompletionStatus,
-//       csrfToken: request.csrfToken() 
-//     });
-//   } else {
-//     response.json({ 
-//       userName,
-//       todayTask,
-//        Overduetask,
-//         Latertask,
-//          CompletionStatus });
-//   }
-// })
 app.get("/todos", connectEnsureLogin.ensureLoggedIn(), async (request, response) => {
   const loggedInUser = request.user.id;
   const todayTask = await Todos.todayTask(loggedInUser);
