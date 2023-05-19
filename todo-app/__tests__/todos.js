@@ -120,6 +120,10 @@ describe("Todo Application", function () {
     const parsedIncompleteResponse = JSON.parse(markIncompleteResponse.text);
     expect(parsedIncompleteResponse.completed).toBe(false);
   });
+<<<<<<< HEAD
+=======
+  
+>>>>>>> b6c0b9143937602fe34082af263be94c3c9ca1b0
   test("Auser cannot edit or modify and delete Btest todo", async () => {
     var agent = request.agent(server);
     await login(agent, "test@gmail.com", "12345678");
@@ -175,7 +179,7 @@ describe("Todo Application", function () {
     }
   });
 
-  test("Delete a todo", async () => {
+  test("We can check for Deleting a todo", async () => {
     const agent = request.agent(server);
     await login(agent, "test@gmail.com", "12345678");
     let resp = await agent.get("/todos");
