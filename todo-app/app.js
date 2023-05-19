@@ -1,3 +1,4 @@
+
 /* eslint-disable no-unused-vars */
 const express = require("express");
 const csrf = require("tiny-csrf");
@@ -6,10 +7,10 @@ const { Todos, User } = require("./models");
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 const path = require(`path`);
-//
+
 const { ensureLoggedIn, ensureLoggedOut } = require("connect-ensure-login");
 const Sequelize = require("sequelize");
-//
+
 
 const passport = require('passport');
 const connectEnsureLogin = require('connect-ensure-login');
@@ -18,7 +19,7 @@ const LocalStrategy = require('passport-local');
 const bcrypt = require('bcrypt');
 const flash = require("connect-flash");
 const { error } = require("console");
-//const { next } = require("cheerio/lib/api/traversing");
+
 const saltRounds = 10 ;
 
 app.use(bodyParser.json());
@@ -197,55 +198,33 @@ app.get("/todos", async (request, response) => {
     return response.status(500).json({ error: "Unable to retrieve todos" });
   }
 });
-
-app.post("/todos", connectEnsureLogin.ensureLoggedIn(), async (request, response) => {
-  console.log("creating a todo", request.body);
-  console.log(request.user);
-
-  if (!request.body.dueDate) {
-    return response.status(400).json({ error: "Due date is required" });
-  }
-
-  const { title, dueDate } = request.body;
-  if (!title || !dueDate) {
-    return response.status(400).json({ error: "Title and Due date are required" });
-  }
-
-  try {
-    await Todos.addTodos({
-      title: request.body.title,
-      dueDate: request.body.dueDate,
-      userId: request.user.id,
-      completed: false,
-    });
-    //return response.status(200).json({ success: true, message: "Todo created successfully", Todos });
-  } catch (error) {
-    if (error instanceof Sequelize.ValidationError) {
-      // Handle validation errors
-      const errors = error.errors.map((err) => ({
-        field: err.path,
-        message: err.message,
-      }));
-      return response.status(400).json({ success: false, message: "Validation error", errors });
-    } else {
-      // Handle other errors
-      console.log(error);
-      return response.status(500).json({ success: false, message: "Internal server error" });
+app.post("/todos",connectEnsureLogin.ensureLoggedIn(),async function (request, response) {
+    if (request.body.title.length == 0) {
+      request.flash("error", "Title shouldn't be empty!");
+      return response.redirect("/todos");
     }
-  }
-});
+    if (request.body.title.length < 4) {
+      request.flash("error", "Title atleast 4 characters");
+      return response.redirect("/todos");
+    }
+    if (request.body.dueDate.length == 0) {
+      request.flash("error", "Duedate shouldn't be empty!");
+      return response.redirect("/todos");
+    }
+    console.log(request.user);
+    try {
+      await Todos.addTodos({
+        title: request.body.title,
+        dueDate: request.body.dueDate,
+        userId: request.user.id,
+      });
+      return response.redirect("/todos");
+    } catch (error) {
+      console.log(error);
+      return response.status(422).json(error);
+    }
+  });
 
-app.get("/todos/:id", connectEnsureLogin.ensureLoggedIn(), async (request, response) => {
-  console.log("We have to update a todo with ID:", request.params.id);
-  const todo = await Todos.findByPk(request.params.id);
-  try {
-    const updatedTodo = await todo.setCompletionStatus(true);
-    return response.json(updatedTodo);
-  } catch (error) {
-    console.log(error);
-    return response.status(500).json(error);
-  }
-});
 app.put("/todos/:id",connectEnsureLogin.ensureLoggedIn(),  async (request, response) => {
     console.log("We have to update a todo with ID:", request.params.id);
     const todo = await Todos.findByPk(request.params.id);
