@@ -63,6 +63,12 @@
             <form action="/todos" method="post">
                 <p>Welcome, <%= userName %></p>
                 <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+<<<<<<< HEAD
+=======
+                 <% if (user && user.firstName && user.lastName) { %>
+                    <p class="py-2 text-sm font-semibold">Welcome, <%= user.firstName %> <%= user.lastName %></p>
+                <% } %>
+>>>>>>> cb37a71ac9d79fe1cd7d32fe632d29a720e18602
                 <div class="flex gap-2 py-4">
                     <div class="flex-auto">
                         <input type="text" name="title" placeholder="What's next?" class="border border-grey-300 rounded text-grey-900 w-full p-2 text-sm" />
