@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node index.js",
     "pretest": "NODE_ENV=test npx sequelize-cli db:drop && NODE_ENV=test npx sequelize-cli db:create",
-    "test": "NODE_ENV=test jest --detectOpenHandles"
+    "test": "NODE_ENV=test jest --detectOpenHandles",
+    "lint": "your-lint-command"
   },
   "author": "Deepakjha <djha74355@gmail.com>",
   "license": "ISC",
@@ -38,11 +39,14 @@
   },
   "lint-staged": {
     "*.js": [
-      "eslint",
-      "prettier --write ."
+      "npm run lint",
+      "git add"
     ]
   },
   "husky": {
-    "pre-commit": "npm test"
+    "hooks": {
+      "pre-commit": "lint-staged",
+      "pre-push": "npm test"
+    }
   }
 }
