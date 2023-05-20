@@ -60,13 +60,12 @@ module.exports = (sequelize, DataTypes) => {
     static async completed(userId){
     return await Todos.findAll({
       where: {
-        completed: true
+        completed: true,
+        userId,
       },
-      userId,
       order: [['id', 'ASC']],
     });
   }
-
   static async incomplete(userId) {
     return await Todos.findAll({
       where: {
