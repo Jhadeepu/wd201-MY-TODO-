@@ -1,4 +1,3 @@
-
 /* eslint-disable no-unused-vars */
 const express = require("express");
 const csrf = require("tiny-csrf");
@@ -101,7 +100,7 @@ app.get("/login", (request, response, next) => {
 });
 
 app.get("/todos", connectEnsureLogin.ensureLoggedIn(), async (request, response) => {
-  try{
+  const userName = request.user.firstName + " " + request.user.lastName;
   const loggedInUser = request.user.id;
   const todayTask = await Todos.todayTask(loggedInUser);
   const Overduetask = await Todos.Overduetask(loggedInUser);
@@ -110,6 +109,7 @@ app.get("/todos", connectEnsureLogin.ensureLoggedIn(), async (request, response)
 
   if (request.accepts("html")) {
     response.render("todo", {
+      userName,
       todayTask,
       Overduetask,
       Latertask,
@@ -119,17 +119,13 @@ app.get("/todos", connectEnsureLogin.ensureLoggedIn(), async (request, response)
     });
   } else {
     response.json({
+      userName,
       todayTask,
       Overduetask,
       Latertask,
       CompletionStatus,
     });
-  }} catch (error) {
-    console.log(error);
-    return response.status(500).json({ error: "Unable to retrieve todos" });
-  }
-});
-
+  }});
 
 app.get("/signup" , (request,response) => {
   response.render("signup", { title: "Signup", csrfToken: request.csrfToken() });
@@ -237,22 +233,31 @@ app.post("/todos",connectEnsureLogin.ensureLoggedIn(),async function (request, r
     }
   });
 
-  
-
-
-app.put("/todos/:id",connectEnsureLogin.ensureLoggedIn(),  async (request, response) => {
+  app.put("/todos/:id", connectEnsureLogin.ensureLoggedIn(), async (request, response) => {
     console.log("We have to update a todo with ID:", request.params.id);
-    const todo = await Todos.findByPk(request.params.id);
-    const { completed } = request.body;
     try {
-      const updatedTodo = await todo.setCompletionStatus(completed);
+      const todo = await Todos.findByPk(request.params.id);
+  
+      if (!todo) {
+        return response.status(404).json({ error: "Todo not found" });
+      }
+      const authenticatedUserId = request.user.id;
+      if (todo.userId !== authenticatedUserId) {
+        return response
+          .status(403)
+          .json({ error: "You are not authorized to update this todo" });
+      }
+  
+      const { completed } = request.body;
+      const updatedTodo = await todo.update({ completed });
+  
       return response.json(updatedTodo);
     } catch (error) {
       console.log(error);
       return response.status(500).json(error);
     }
   });
-
+  
 app.delete("/todos/:id",connectEnsureLogin.ensureLoggedIn(), async (request, response) => {
   console.log("We have to delete a Todo with ID: ", request.params.id);
   try {
