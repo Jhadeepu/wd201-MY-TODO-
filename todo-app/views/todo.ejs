@@ -51,31 +51,31 @@
         }
     </script>
 </head>
-<body>    
+<body>   
     <div class="grid grid-cols-6">
         <div class="col-start-3 col-span-2">
         <div class="flex justify-end ">
             <a href="/signout" class="text-blue-500 hover:underline">Signout</a>
         </div>
         <div class="flex-grow max-w-3xl mx-auto p-2">
+            
             <%- include('header.ejs') %>
             <form action="/todos" method="post">
+                <p>Welcome, <%= userName %></p>
                 <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
-                <% if (user) { %>
-                    <p class="py-2 text-sm font-semibold">Welcome, <%= user.firstName %> <%= user.lastName %></p>
-                <% } %>
                 <div class="flex gap-2 py-4">
                     <div class="flex-auto">
-                        <input type="text" name="title" placeholder="What's next?" class="border border-grey-300 rounded text-grey-900 w-full p-2 text-sm" required />
+                        <input type="text" name="title" placeholder="What's next?" class="border border-grey-300 rounded text-grey-900 w-full p-2 text-sm" />
                     </div>
                     <div class="flex-auto">
-                        <input type="date" name="dueDate" class="border border-gray-300 rounded-lg text-gray-500 w-full p-2 text-sm leading-4" required/>
+                        <input type="date" name="dueDate" class="border border-gray-300 rounded-lg text-gray-500 w-full p-2 text-sm leading-4" />
                     </div>
                     <div class="flex-none">
                         <button type="submit" class="bg-red-300 rounded text-white px-5 py-2 w-full p-2 text-sm font-medium mr-2 ">Add</button>
                     </div>
                 </div>
-            </form>
+            </form> 
+   
         <%- include('todos.ejs', {title: "Overduetask" , data: Overduetask}) %>
         <%- include('todos.ejs', {title: "todayTask" , data: todayTask}) %>
         <%- include('todos.ejs', {title: "Latertask" , data: Latertask}) %>
