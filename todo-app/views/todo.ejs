@@ -61,7 +61,7 @@
             
             <%- include('header.ejs') %>
             <form action="/todos" method="post">
-                <p>Welcome, <%= userName %></p>
+                
                 <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
                  <% if (user && user.firstName && user.lastName) { %>
                     <p class="py-2 text-sm font-semibold">Welcome, <%= user.firstName %> <%= user.lastName %></p>
