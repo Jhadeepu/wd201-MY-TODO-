@@ -16,8 +16,7 @@
     <body>
         <div class="grid grid-cols-6">
             <div class="col-start-3 col-span-2">
-                <%- include('header.ejs') %>
-                <a href="/" class="text-blue-500 hover:underline">My Todo-List</a>
+              <a href="/" ><%- include('header') %></a>
                 <h6 class="py-4">Login to your account</h6>
                 <form action="/session" method="post">
                     <input type="hidden" name="_csrf" value="<%= csrfToken %>">
