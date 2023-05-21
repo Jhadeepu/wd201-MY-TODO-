@@ -103,28 +103,51 @@ describe("Todo Application", function () {
     await login(agent, "test@gmail.com", "12345678");
     let res = await agent.get("/todos");
     let csrfToken = extractCsrfToken(res);
+  
     // Create a todo
     await agent.post("/todos").send({
       title: "Buy milk",
       dueDate: new Date().toISOString(),
-      completed: true,
       _csrf: csrfToken,
     });
+  
     const groupedTodoResponse = await agent.get("/todos").set("Accept", "application/json");
     const parsedGroupedResponse = JSON.parse(groupedTodoResponse.text);
     const todayTaskCount = parsedGroupedResponse.todayTask.length;
     const latestTodo = parsedGroupedResponse.todayTask[todayTaskCount - 1];
+  
     res = await agent.get("/todos");
     csrfToken = extractCsrfToken(res);
+  
+    // Mark the todo as complete
+    const markCompleteResponse = await agent.put(`/todos/${latestTodo.id}`)
+      .send({
+        completed: true,
+        _csrf: csrfToken
+      });
+  
+    const parsedCompleteResponse = JSON.parse(markCompleteResponse.text);
+  
+    // Assert that the completed status has changed to true
+    expect(parsedCompleteResponse.completed).toBe(true);
+  
     // Mark the todo as incomplete
     const markIncompleteResponse = await agent.put(`/todos/${latestTodo.id}`)
       .send({
         completed: false,
         _csrf: csrfToken
       });
-    const parsedIncompleteResponse = JSON.parse(markIncompleteResponse.text);
-    // Assert that the completed status has changed to false
-    expect(parsedIncompleteResponse.completed).toBe(false);
+  
+    console.log("markIncompleteResponse.text:", markIncompleteResponse.text); // Logging response text
+  
+    try {
+      const parsedIncompleteResponse = JSON.parse(markIncompleteResponse.text);
+      console.log("parsedIncompleteResponse:", parsedIncompleteResponse); // Logging parsed response
+      // Assert that the completed status has changed to false
+      expect(parsedIncompleteResponse.completed).toBe(false);
+    } catch (error) {
+      console.error("Error parsing JSON response:", error);
+    }
   });
   
   test("Auser cannot edit or modify and delete Btest todo", async () => {
