@@ -146,7 +146,7 @@ app.post("/users" , async (request, response) => {
     return response.redirect("/signup");
   }
   if (request.body.password.length < 6) {
-    request.flash("error","password can not be empty!")
+    request.flash("error","password should be a minimum of 6 characters long!")
     return response.redirect("/signup");
   }
   const hashedPwd = await bcrypt.hash(request.body.password, saltRounds)
