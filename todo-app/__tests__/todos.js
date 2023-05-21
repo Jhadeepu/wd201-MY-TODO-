@@ -69,7 +69,7 @@ describe("Todo Application", function () {
     expect(response.statusCode).toBe(302);
   });
 
-  test("Marks a todo item as incomplete", async () => {
+  test("Marks a todo item as complete or incomplete", async () => {
     const agent = request.agent(server);
     await login(agent, "test@gmail.com", "12345678");
     let res = await agent.get("/todos");
