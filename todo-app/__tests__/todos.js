@@ -68,17 +68,18 @@ describe("Todo Application", function () {
     });
     expect(response.statusCode).toBe(302);
   });
-
-  test("Marks a todo item as complete", async () => {
-    const agent = request.agent(server)
-    await login(agent, "test@gmail.com", "12345678")
+  
+    test("Marks a todo item as complete", async () => {
+    const agent = request.agent(server);
+    await login(agent, "test@gmail.com", "12345678");
     let res = await agent.get("/todos");
     let csrfToken = extractCsrfToken(res);
+    // Create a todo
     await agent.post("/todos").send({
       title: "Buy milk",
       dueDate: new Date().toISOString(),
       completed: false,
-      "_csrf": csrfToken
+      _csrf: csrfToken,
     });
     const groupedTodoResponse = await agent.get("/todos").set("Accept", "application/json");
     const parsedGroupedResponse = JSON.parse(groupedTodoResponse.text);
@@ -86,25 +87,28 @@ describe("Todo Application", function () {
     const latestTodo = parsedGroupedResponse.todayTask[todayTaskCount - 1];
     res = await agent.get("/todos");
     csrfToken = extractCsrfToken(res);
+    // Mark the todo as complete
     const markCompleteResponse = await agent.put(`/todos/${latestTodo.id}`)
       .send({
         completed: true,
         _csrf: csrfToken
       });
     const parsedCompleteResponse = JSON.parse(markCompleteResponse.text);
+    // Assert that the completed status has changed to true
     expect(parsedCompleteResponse.completed).toBe(true);
   });
-
+  
   test("Marks a todo item as incomplete", async () => {
-    const agent = request.agent(server)
-    await login(agent, "test@gmail.com", "12345678")
+    const agent = request.agent(server);
+    await login(agent, "test@gmail.com", "12345678");
     let res = await agent.get("/todos");
     let csrfToken = extractCsrfToken(res);
+    // Create a todo
     await agent.post("/todos").send({
       title: "Buy milk",
       dueDate: new Date().toISOString(),
       completed: true,
-      "_csrf": csrfToken
+      _csrf: csrfToken,
     });
     const groupedTodoResponse = await agent.get("/todos").set("Accept", "application/json");
     const parsedGroupedResponse = JSON.parse(groupedTodoResponse.text);
@@ -112,14 +116,17 @@ describe("Todo Application", function () {
     const latestTodo = parsedGroupedResponse.todayTask[todayTaskCount - 1];
     res = await agent.get("/todos");
     csrfToken = extractCsrfToken(res);
+    // Mark the todo as incomplete
     const markIncompleteResponse = await agent.put(`/todos/${latestTodo.id}`)
       .send({
         completed: false,
         _csrf: csrfToken
       });
     const parsedIncompleteResponse = JSON.parse(markIncompleteResponse.text);
+    // Assert that the completed status has changed to false
     expect(parsedIncompleteResponse.completed).toBe(false);
   });
+  
   test("Auser cannot edit or modify and delete Btest todo", async () => {
     var agent = request.agent(server);
     await login(agent, "test@gmail.com", "12345678");
